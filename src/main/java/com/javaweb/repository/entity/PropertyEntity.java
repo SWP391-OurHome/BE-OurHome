@@ -13,7 +13,7 @@ public class PropertyEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "PropertyID")
-    private Long propertyId;
+    private Integer  propertyId;
 
     @Column(name = "Address_Line1")
     private String addressLine1;

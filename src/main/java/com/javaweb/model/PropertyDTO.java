@@ -18,7 +18,7 @@ public class PropertyDTO {
     private Integer numBathroom;
     private Integer floor;
     private Boolean privatePool;
-    private String landType;
+    private String LandType;
     private String legalStatus;
     private String imgURL;
     private String purpose;
