@@ -143,7 +143,6 @@ public class PropertyEntity {
     public void setNumBedroom(Integer numBedroom) {
         this.numBedroom = numBedroom;
     }
-
     public Integer getNumCompares() {
         return numCompares;
     }
