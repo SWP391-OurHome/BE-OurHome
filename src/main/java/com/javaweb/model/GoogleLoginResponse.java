@@ -13,11 +13,37 @@ public class GoogleLoginResponse {
     private Integer userId;
     private boolean success;
     private String email;
-    private String name;
+    private String firstName;
+    private String lastName;
+    private String phone;
     private String picture;
     private String role;
     private LocalDate birthday;
     private String token;
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
 
     public LocalDate getBirthday() {
         return birthday;
@@ -59,13 +85,6 @@ public class GoogleLoginResponse {
         this.email = email;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 
     public String getPicture() {
         return picture;
