@@ -33,7 +33,7 @@ public class PropertyEntity {
     @Column(name = "interior")
     private Double interior;
 
-    @Column(name = "property_type")
+    @Column(name = "PropertyType")
     private String propertyType;
 
     @Column(name = "Num_Bedroom")
@@ -51,7 +51,7 @@ public class PropertyEntity {
     @Column(name = "PrivatePool")
     private Boolean privatePool;
 
-    @Column(name = "land_type")
+    @Column(name = "LandType")
     private String landType;
 
 
@@ -71,12 +71,12 @@ public class PropertyEntity {
     private List<PropertyImage> images = new ArrayList<>();
 
 
-    // Getters and Setters
-    public Long getPropertyId() {
+
+    public Integer getPropertyId() {
         return propertyId;
     }
 
-    public void setPropertyId(Long propertyId) {
+    public void setPropertyId(Integer propertyId) {
         this.propertyId = propertyId;
     }
 
@@ -218,4 +218,3 @@ public class PropertyEntity {
 
 
 }
-

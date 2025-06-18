@@ -139,11 +139,11 @@ public class PropertyDTO {
     }
 
     public String getLandType() {
-        return landType;
+        return LandType;
     }
 
     public void setLandType(String landType) {
-        this.landType = landType;
+        this.LandType = landType;
     }
 
     public String getLegalStatus() {
@@ -178,3 +178,4 @@ public class PropertyDTO {
         this.price = price;
     }
 }
+
