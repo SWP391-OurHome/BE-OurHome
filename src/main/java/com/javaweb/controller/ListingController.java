@@ -16,7 +16,7 @@ public class ListingController {
     private ListingService listingService;
 
     @GetMapping("/{propertyId}")
-    public ResponseEntity<ListingDTO> getListingByPropertyId(@PathVariable Long propertyId) {
+    public ResponseEntity<ListingDTO> getListingByPropertyId(@PathVariable Integer propertyId) {
         return listingService.getListingByPropertyId(propertyId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
