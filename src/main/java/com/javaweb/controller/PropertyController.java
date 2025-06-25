@@ -4,7 +4,9 @@ import com.javaweb.model.PropertyDTO;
 import com.javaweb.repository.PropertyRepository;
 import com.javaweb.repository.entity.PropertyEntity;
 import com.javaweb.repository.entity.PropertyImage;
+import com.javaweb.service.ListingService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.javaweb.repository.PropertyImageRepository;
@@ -27,10 +29,28 @@ public class PropertyController {
 
     @Autowired
     private PropertyImageRepository propertyImageRepository;
+    @Autowired
+    private ListingService listingService;
 
     @GetMapping
     public ResponseEntity<List<PropertyEntity>> getAll() {
-        return ResponseEntity.ok(propertyRepository.findAll());
+        return ResponseEntity.ok(propertyRepository.findAll(PageRequest.of(0, 6)).getContent());
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<PropertyEntity>> search(
+            @RequestParam(required = false) String city,
+            @RequestParam(required = false) String propertyType,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(required = false) Double minArea,
+            @RequestParam(required = false) Double maxArea,
+            @RequestParam(required = false) Integer bedrooms,
+            @RequestParam(required = false) Integer bathrooms
+    ) {
+        List<PropertyEntity> properties = listingService.search(
+                city, propertyType, minPrice, maxPrice, minArea, maxArea, bedrooms, bathrooms);
+        return ResponseEntity.ok(properties);
     }
 
     @GetMapping("/{id}")
