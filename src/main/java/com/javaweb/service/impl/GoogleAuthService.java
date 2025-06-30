@@ -108,7 +108,8 @@ public class GoogleAuthService {
         GoogleLoginResponse response = new GoogleLoginResponse();
         response.setUserId(user.getUserId());
         response.setSuccess(true);
-        response.setName(user.getFirstName() + " " + user.getLastName());
+        response.setFirstName(user.getFirstName());
+        response.setLastName(user.getLastName());
         response.setPicture(user.getImgPath());
         response.setEmail(user.getEmail());
         response.setRole(user.getRole().getRoleName());

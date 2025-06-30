@@ -9,8 +9,10 @@ public class AuthResponse {
     private String message;
     private String role;
     private String picture;
+    private String phone;
     private String email;
-    private String name;
+    private String firstName;
+    private String lastName;
     private LocalDate birthday;
 
     public AuthResponse() {
@@ -27,16 +29,40 @@ public class AuthResponse {
         this.role = role;
     }
 
-
-    public AuthResponse(Integer userID, boolean success, String message, String role, String picture, String email, String name, LocalDate birthday) {
+    public AuthResponse(Integer userID, boolean success, String message, String role, String picture, String email, String firstName, String lastName, LocalDate birthday) {
         this.userID = userID;
         this.success = success;
         this.message = message;
         this.role = role;
         this.picture = picture;
         this.email = email;
-        this.name = name;
+        this.firstName = firstName;
+        this.lastName = lastName;
         this.birthday = birthday;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 
     public LocalDate getBirthday() {
@@ -61,14 +87,6 @@ public class AuthResponse {
 
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public String getPicture() {
