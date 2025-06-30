@@ -7,7 +7,6 @@ import com.javaweb.repository.entity.PropertyImage;
 import com.javaweb.service.PropertyService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.javaweb.repository.PropertyImageRepository;
@@ -81,23 +80,5 @@ public class PropertyController {
         return ResponseEntity.ok(success);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteProperty(@PathVariable Integer id, @RequestBody Integer userId) {
-        try {
-            if (userId == null) {
-                return new ResponseEntity<>("userId is required in request body", HttpStatus.BAD_REQUEST);
-            }
-            boolean deleted = propertyService.deleteProperty(id, userId);
-            if (deleted) {
-                return new ResponseEntity<>("Property deleted successfully", HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>("User not authorized to delete this property", HttpStatus.FORBIDDEN);
-            }
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>("Property not found with ID: " + id, HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            return new ResponseEntity<>("Cannot delete property due to related records or other errors.", HttpStatus.BAD_REQUEST);
-        }
-    }
 
 }

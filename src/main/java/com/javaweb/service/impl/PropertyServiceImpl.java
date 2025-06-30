@@ -1,5 +1,6 @@
 package com.javaweb.service.impl;
 
+import com.javaweb.model.ListingDTO;
 import com.javaweb.model.PropertyDTO;
 import com.javaweb.repository.ListingRepository;
 import com.javaweb.repository.PropertyImageRepository;
@@ -10,6 +11,7 @@ import com.javaweb.repository.entity.PropertyImage;
 import com.javaweb.repository.entity.UserEntity;
 import com.javaweb.repository.impl.UserRepositoryImpl;
 import com.javaweb.service.PropertyService;
+import com.javaweb.utils.FormatUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -65,7 +67,7 @@ public class PropertyServiceImpl implements PropertyService {
 
     private PropertyDTO convertToDTO(PropertyEntity entity) {
         PropertyDTO dto = new PropertyDTO();
-        dto.setPropertyID(entity.getPropertyId());
+        dto.setPropertyID(entity.getId());
         dto.setAddressLine1(entity.getAddressLine1());
         dto.setAddressLine2(entity.getAddressLine2());
         dto.setRegion(entity.getRegion());
@@ -252,29 +254,5 @@ public class PropertyServiceImpl implements PropertyService {
         propertyRepo.save(property);
 
         return images;
-    }
-
-
-    @Override
-    @Transactional
-    public boolean deleteProperty(Integer propertyId, Integer userId) {
-        try {
-            PropertyEntity property = propertyRepo.findById(propertyId)
-                    .orElseThrow(() -> new IllegalArgumentException("Property not found with ID: " + propertyId));
-
-            if (!property.getUser().getUserId().equals(userId)) {
-                return false;
-            }
-
-            Optional<ListingEntity> listingOpt = listRepo.findByPropertyId(propertyId);
-            if (listingOpt.isPresent()) {
-                listRepo.delete(listingOpt.get());
-            }
-
-            propertyRepo.delete(property);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
     }
 }

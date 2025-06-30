@@ -1,6 +1,8 @@
 package com.javaweb.repository;
 
 
+
+
 import com.javaweb.repository.entity.PropertyEntity;
 import com.javaweb.repository.entity.PropertyImage;
 import org.springframework.data.jpa.repository.JpaRepository;
