@@ -39,7 +39,8 @@ public class AuthController {
     private UserService userService;
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
+    public ResponseEntity<AuthResponse> login(@RequestBody(required = false) AuthRequest request) {
+        System.out.println("Received from FE: " + request);
         return ResponseEntity.ok(userService.login(request));
     }
 
@@ -169,9 +170,6 @@ public class AuthController {
         if(!isSucces){
             if(!request.getEmail().isEmpty()){
                 return ResponseEntity.ok(new AuthResponse(false, "Email is not registered."));
-            }
-            if(!request.getPhone().isEmpty()){
-                return ResponseEntity.ok(new AuthResponse(false, "Your Account is not registered"));
             }
         }
         return ResponseEntity.ok(new AuthResponse(true, "Password changed successfully."));

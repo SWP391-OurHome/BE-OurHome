@@ -1,67 +1,40 @@
 package com.javaweb.controller;
 
-
 import com.javaweb.model.PropertyDTO;
 import com.javaweb.repository.PropertyRepository;
 import com.javaweb.repository.entity.PropertyEntity;
-import com.javaweb.repository.entity.PropertyImageEnitity;
-import com.javaweb.service.ListingService;
+import com.javaweb.repository.entity.PropertyImage;
+import com.javaweb.service.PropertyService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.javaweb.repository.PropertyImageRepository;
-
-
-
-
-
-
-
-
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-
 @RestController
 @RequestMapping("/api/listing")
 @CrossOrigin(origins = {"http://localhost:3000", "http://localhost:3001"})
 public class PropertyController {
+
     @Autowired
     private PropertyRepository propertyRepository;
 
-
     @Autowired
     private PropertyImageRepository propertyImageRepository;
-    @Autowired
-    private ListingService listingService;
 
+    @Autowired
+    private PropertyService propertyService;
 
     @GetMapping
     public ResponseEntity<List<PropertyEntity>> getAll() {
-        return ResponseEntity.ok(propertyRepository.findAll(PageRequest.of(0, 6)).getContent());
+        return ResponseEntity.ok(propertyRepository.findAll());
     }
-
-
-    @GetMapping("/search")
-    public ResponseEntity<List<PropertyEntity>> search(
-            @RequestParam(required = false) String city,
-            @RequestParam(required = false) String propertyType,
-            @RequestParam(required = false) Double minPrice,
-            @RequestParam(required = false) Double maxPrice,
-            @RequestParam(required = false) Double minArea,
-            @RequestParam(required = false) Double maxArea,
-            @RequestParam(required = false) Integer bedrooms,
-            @RequestParam(required = false) Integer bathrooms
-    ) {
-        List<PropertyEntity> properties = listingService.search(
-                city, propertyType, minPrice, maxPrice, minArea, maxArea, bedrooms, bathrooms);
-        return ResponseEntity.ok(properties);
-    }
-
 
     @GetMapping("/{id}")
     public ResponseEntity<PropertyDTO> getById(@PathVariable Integer id) {
@@ -71,7 +44,7 @@ public class PropertyController {
         }
         PropertyEntity property = optional.get();
         PropertyDTO dto = new PropertyDTO();
-        dto.setPropertyID(property.getPropertyId());
+        dto.setPropertyID(property.getId());
         dto.setAddressLine1(property.getAddressLine1());
         dto.setAddressLine2(property.getAddressLine2());
         dto.setRegion(property.getRegion());
@@ -90,22 +63,22 @@ public class PropertyController {
         dto.setPurpose(property.getPurpose());
         dto.setPrice(property.getPrice());
 
-
         // Thêm danh sách image URLs từ bảng property_images
         List<String> imageUrls = propertyImageRepository.findByProperty(property)
                 .stream()
-                .map(PropertyImageEnitity::getImageUrl)
+                .map(PropertyImage::getImageUrl)
                 .collect(Collectors.toList());
         dto.setImages(imageUrls);
-
 
         return ResponseEntity.ok(dto);
     }
 
-
-    @PostMapping
-    public ResponseEntity<PropertyEntity> create(@RequestBody PropertyEntity property) {
-        PropertyEntity saved = propertyRepository.save(property);
-        return ResponseEntity.ok(saved);
+    @PostMapping("/{userID}")
+    public ResponseEntity<Boolean> create(@PathVariable Integer userID, HttpServletRequest request) {
+        MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
+        boolean success = propertyService.createProperty(userID, multipartRequest);
+        return ResponseEntity.ok(success);
     }
+
+
 }
