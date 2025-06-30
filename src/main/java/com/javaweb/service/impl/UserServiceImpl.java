@@ -66,6 +66,8 @@ public class UserServiceImpl implements UserService {
                 request.getPassword(),
                 defaultRole
         );
+        user.setBirthday(request.getBirthday()); // Set birthday from request
+        user.setImgPath("/img/DefaultAvatar.jpg"); // Set default avatar path
 
         userRepo.save(user);
         return new AuthResponse(true, "Register success", "Customer");

@@ -11,7 +11,7 @@ public class ListingEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "Listing_ID")
-    private Long listingId;
+    private Integer listingId;
 
     @Column(name = "Description", columnDefinition = "TEXT")
     private String description;
@@ -19,28 +19,37 @@ public class ListingEntity {
     @Column(name = "Listing_status")
     private String listingStatus;
 
-    @Column(name = "PropertyID")
-    private Long propertyId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "PropertyID", referencedColumnName = "PropertyID", insertable = false, updatable = false)
+    private PropertyEntity property;
 
-    // === Constructors ===
+
 
     public ListingEntity() {
     }
 
-    public ListingEntity(Long listingId, String description, String listingStatus, Long propertyId) {
+
+    public PropertyEntity getProperty() {
+        return property;
+    }
+
+    public void setProperty(PropertyEntity property) {
+        this.property = property;
+    }
+
+    public ListingEntity(Integer listingId, String description, String listingStatus, PropertyEntity property) {
         this.listingId = listingId;
         this.description = description;
         this.listingStatus = listingStatus;
-        this.propertyId = propertyId;
+        this.property = property;
     }
-
     // === Getters & Setters ===
 
-    public Long getListingId() {
+    public Integer getListingId() {
         return listingId;
     }
 
-    public void setListingId(Long listingId) {
+    public void setListingId(Integer listingId) {
         this.listingId = listingId;
     }
 
@@ -60,11 +69,4 @@ public class ListingEntity {
         this.listingStatus = listingStatus;
     }
 
-    public Long getPropertyId() {
-        return propertyId;
-    }
-
-    public void setPropertyId(Long propertyId) {
-        this.propertyId = propertyId;
-    }
 }

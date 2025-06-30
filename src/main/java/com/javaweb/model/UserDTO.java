@@ -10,6 +10,7 @@ import java.util.Date;
 
 public class UserDTO {
 
+        private Integer userID;
         private String firstName;
 
 
@@ -29,6 +30,14 @@ public class UserDTO {
 
         public UserDTO() {
 
+        }
+
+        public Integer getUserID() {
+                return userID;
+        }
+
+        public void setUserID(Integer userID) {
+                this.userID = userID;
         }
 
         public String getFirstName() {

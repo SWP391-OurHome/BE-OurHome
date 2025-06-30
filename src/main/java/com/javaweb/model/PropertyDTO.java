@@ -4,8 +4,7 @@ import java.util.List;
 
 
 public class PropertyDTO {
-
-    private Long propertyID;
+    private Integer propertyID;
     private String addressLine1;
     private String addressLine2;
     private String region;
@@ -34,11 +33,11 @@ public class PropertyDTO {
 
 
     // Getters and Setters
-    public Long getPropertyID() {
+    public Integer getPropertyID() {
         return propertyID;
     }
 
-    public void setPropertyID(Long propertyID) {
+    public void setPropertyID(Integer propertyID) {
         this.propertyID = propertyID;
     }
 

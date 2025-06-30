@@ -4,13 +4,13 @@ import com.javaweb.model.PropertyDTO;
 import com.javaweb.repository.PropertyRepository;
 import com.javaweb.repository.entity.PropertyEntity;
 import com.javaweb.repository.entity.PropertyImage;
+import com.javaweb.service.PropertyService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.javaweb.repository.PropertyImageRepository;
-
-
-
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 
 import java.util.List;
@@ -28,6 +28,9 @@ public class PropertyController {
     @Autowired
     private PropertyImageRepository propertyImageRepository;
 
+    @Autowired
+    private PropertyService propertyService;
+
     @GetMapping
     public ResponseEntity<List<PropertyEntity>> getAll() {
         return ResponseEntity.ok(propertyRepository.findAll());
@@ -41,7 +44,7 @@ public class PropertyController {
         }
         PropertyEntity property = optional.get();
         PropertyDTO dto = new PropertyDTO();
-        dto.setPropertyID(property.getPropertyId());
+        dto.setPropertyID(property.getId());
         dto.setAddressLine1(property.getAddressLine1());
         dto.setAddressLine2(property.getAddressLine2());
         dto.setRegion(property.getRegion());
@@ -70,9 +73,12 @@ public class PropertyController {
         return ResponseEntity.ok(dto);
     }
 
-    @PostMapping
-    public ResponseEntity<PropertyEntity> create(@RequestBody PropertyEntity property) {
-        PropertyEntity saved = propertyRepository.save(property);
-        return ResponseEntity.ok(saved);
+    @PostMapping("/{userID}")
+    public ResponseEntity<Boolean> create(@PathVariable Integer userID, HttpServletRequest request) {
+        MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
+        boolean success = propertyService.createProperty(userID, multipartRequest);
+        return ResponseEntity.ok(success);
     }
+
+
 }
