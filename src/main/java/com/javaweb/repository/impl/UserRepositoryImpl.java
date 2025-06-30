@@ -4,6 +4,7 @@ import com.javaweb.model.UserDTO;
 import com.javaweb.repository.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -20,4 +21,6 @@ public interface UserRepositoryImpl extends JpaRepository<UserEntity, Integer> {
     //Repository for seller dashboard
     public List<UserEntity> findByRoleRoleName(String roleName);
 
+    @Query("SELECT u FROM UserEntity u WHERE u.email = :email")
+    Optional<UserEntity> findEmail(@Param("email") String email);
 }
