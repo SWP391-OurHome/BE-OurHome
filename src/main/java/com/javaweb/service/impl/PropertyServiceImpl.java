@@ -65,7 +65,7 @@ public class PropertyServiceImpl implements PropertyService {
 
     private PropertyDTO convertToDTO(PropertyEntity entity) {
         PropertyDTO dto = new PropertyDTO();
-        dto.setPropertyID(entity.getId());
+        dto.setPropertyID(entity.getPropertyId());
         dto.setAddressLine1(entity.getAddressLine1());
         dto.setAddressLine2(entity.getAddressLine2());
         dto.setRegion(entity.getRegion());

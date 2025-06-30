@@ -1,9 +1,6 @@
 package com.javaweb.repository.entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-
-import java.util.Collection;
 import java.util.List; //
 import java.util.ArrayList;
 
@@ -16,7 +13,7 @@ public class PropertyEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "PropertyID")
-    private Integer  id;
+    private Integer  propertyId;
 
     @Column(name = "Address_Line1")
     private String addressLine1;
@@ -70,28 +67,17 @@ public class PropertyEntity {
     @Column(name = "price") // Thêm cột Price
     private String  price;
 
-    @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JsonManagedReference
+    @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<PropertyImage> images = new ArrayList<>();
 
-    @ManyToOne
-    @JoinColumn(name = "UserID")
-    private UserEntity user;
 
-    public UserEntity getUser() {
-        return user;
+
+    public Integer getPropertyId() {
+        return propertyId;
     }
 
-    public void setUser(UserEntity user) {
-        this.user = user;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
+    public void setPropertyId(Integer propertyId) {
+        this.propertyId = propertyId;
     }
 
     public String getAddressLine1() {
@@ -213,14 +199,6 @@ public class PropertyEntity {
         this.imgURL = imgURL;
     }
 
-    public List<PropertyImage> getImages() {
-        return images;
-    }
-
-    public void setImages(List<PropertyImage> images) {
-        this.images = images;
-    }
-
     public String getPurpose() {
         return purpose;
     }
@@ -236,7 +214,6 @@ public class PropertyEntity {
     public void setPrice(String price) {
         this.price = price;
     }
-
 
 
 }
