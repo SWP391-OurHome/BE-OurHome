@@ -13,4 +13,5 @@ public interface PropertyService {
     public List<PropertyDTO> findPropertiesByUserId(Integer userId);
     public boolean updateProperty(Integer userID, MultipartHttpServletRequest request);
     public boolean createProperty(Integer userID, MultipartHttpServletRequest request);
+    boolean deleteProperty(Integer propertyId, Integer userId);
 }
