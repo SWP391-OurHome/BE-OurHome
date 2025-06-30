@@ -37,7 +37,7 @@ public class UserEntity {
     @Column(name = "email", length = 255)
     private String email;
 
-    @Column(name = "create_date")
+    @Column(name = "createDate")
     private LocalDateTime createDate;
 
 
@@ -45,7 +45,7 @@ public class UserEntity {
     @JoinColumn(name = "RoleID", referencedColumnName = "RoleID")
     private RoleEntity role;
 
-    @Column(name = "img_path")
+    @Column(name = "ImgPath")
     private String imgPath;
 
     // Getters và setters

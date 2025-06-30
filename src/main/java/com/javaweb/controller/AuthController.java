@@ -3,7 +3,6 @@ package com.javaweb.controller;
 import com.javaweb.model.*;
 import com.javaweb.service.UserService;
 import com.javaweb.service.impl.GoogleAuthService;
-import com.javaweb.utils.JwtUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +39,8 @@ public class AuthController {
     private UserService userService;
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<AuthResponse> login(@RequestBody(required = false) AuthRequest request) {
+        System.out.println("Received from FE: " + request);
         return ResponseEntity.ok(userService.login(request));
     }
 
@@ -77,33 +77,29 @@ public class AuthController {
     }
 
     @GetMapping("/oauth2/callback")
-    public void handleGoogleCallback(@RequestParam String code, HttpServletResponse response) throws IOException {
-        try {
-            GoogleUserInfo userInfo = googleAuthService.authenticateWithGoogle(code);
-            GoogleLoginResponse loginResponse = googleAuthService.findOrCreateGoogleUser(userInfo);
+    public void handleGoogleCallback(@RequestParam String code,
+                                     HttpServletResponse response) throws IOException {
+        GoogleUserInfo userInfo = googleAuthService.authenticateWithGoogle(code);
 
-            // ✅ Lấy dữ liệu từ response để đưa về frontend
-            String token = loginResponse.getToken();
-            String name = URLEncoder.encode(loginResponse.getName(), StandardCharsets.UTF_8);
-            String email = URLEncoder.encode(loginResponse.getEmail(), StandardCharsets.UTF_8);
-            String picture = URLEncoder.encode(loginResponse.getPicture(), StandardCharsets.UTF_8);
-            String role = URLEncoder.encode(loginResponse.getRole(), StandardCharsets.UTF_8);
+        GoogleLoginResponse loginResponse = googleAuthService.findOrCreateGoogleUser(userInfo);
 
-            String redirectUrl = frontendRedirectUri +
-                    "?token=" + token +
-                    "&name=" + name +
-                    "&email=" + email +
-                    "&picture=" + picture +
-                    "&role=" + role;
+        GoogleLoginResponse resp = userService.getInformation(userInfo.getEmail());
+        resp.setToken(loginResponse.getToken());
 
-            response.sendRedirect(redirectUrl);
+        StringBuilder redirect = new StringBuilder(frontendRedirectUri)
+                .append("?userId=").append(URLEncoder.encode(resp.getUserId().toString(), "UTF-8"))
+                .append("&success=").append(resp.isSuccess())
+                .append("&email=").append(URLEncoder.encode(resp.getEmail(),    "UTF-8"))
+                .append("&firstName=").append(URLEncoder.encode(resp.getFirstName(),"UTF-8"))
+                .append("&lastName=").append(URLEncoder.encode(resp.getLastName(),  "UTF-8"))
+                .append("&phone=").append(URLEncoder.encode(resp.getPhone(),       "UTF-8"))
+                .append("&picture=").append(URLEncoder.encode(resp.getPicture(),   "UTF-8"))
+                .append("&role=").append(URLEncoder.encode(resp.getRole(),         "UTF-8"))
+                .append("&birthday=").append(URLEncoder.encode(resp.getBirthday().toString(), "UTF-8"))
+                .append("&token=").append(URLEncoder.encode(resp.getToken(),       "UTF-8"));
 
-        } catch (Exception e) {
-            String redirectUrl = frontendRedirectUri + "?error=" + URLEncoder.encode(e.getMessage(), "UTF-8");
-            response.sendRedirect(redirectUrl);
-        }
+        response.sendRedirect(redirect.toString());
     }
-
 
     @PostMapping("/sendOtp")
     public ResponseEntity<?> sendOtp(@RequestBody EmailRequest emailRequest) {
@@ -168,5 +164,15 @@ public class AuthController {
         }
     }
 
+    @PutMapping("/reset-password")
+    public ResponseEntity<AuthResponse> resetPassWord(@RequestBody(required = false) AuthRequest request) {
+        boolean isSucces= userService.resetPassword(request);
+        if(!isSucces){
+            if(!request.getEmail().isEmpty()){
+                return ResponseEntity.ok(new AuthResponse(false, "Email is not registered."));
+            }
+        }
+        return ResponseEntity.ok(new AuthResponse(true, "Password changed successfully."));
+    }
 }
 
