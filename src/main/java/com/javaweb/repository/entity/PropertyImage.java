@@ -1,7 +1,5 @@
 package com.javaweb.repository.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
@@ -15,9 +13,8 @@ public class PropertyImage {
     @Column(name = "image_url", nullable = false)
     private String imageUrl;
 
-    @ManyToOne
-    @JoinColumn(name = "property_id")
-    @JsonBackReference
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "property_id", nullable = false)
     private PropertyEntity property;
 
     // Constructors

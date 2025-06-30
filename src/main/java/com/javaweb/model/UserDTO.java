@@ -5,12 +5,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import java.time.LocalDate;
 import java.util.Date;
 
 public class UserDTO {
 
-        private Integer userID;
+
         private String firstName;
 
 
@@ -22,22 +21,17 @@ public class UserDTO {
 
         private String password;
 
-        private LocalDate birthday;
+//        private Date birthday;
 
-        private String ImgPath;
+
+
+//        private String role;
+
 
 //        private Date createdArt;
 
         public UserDTO() {
 
-        }
-
-        public Integer getUserID() {
-                return userID;
-        }
-
-        public void setUserID(Integer userID) {
-                this.userID = userID;
         }
 
         public String getFirstName() {
@@ -72,22 +66,6 @@ public class UserDTO {
                 this.phone = phone;
         }
 
-        public LocalDate getBirthday() {
-                return birthday;
-        }
-
-        public void setBirthday(LocalDate birthday) {
-                this.birthday = birthday;
-        }
-
-        public String getImgPath() {
-                return ImgPath;
-        }
-
-        public void setImgPath(String imgPath) {
-                ImgPath = imgPath;
-        }
-
         public String getPassword() {
                 return password;
         }
@@ -95,6 +73,32 @@ public class UserDTO {
         public void setPassword(String password) {
                 this.password = password;
         }
+//        public Date getCreatedArt() {
+//                return createdArt;
+//        }
+//
+//        public void setCreatedArt(Date createdArt) {
+//                this.createdArt = createdArt;
+//        }
+
+//        public String getRole() {
+//                return role;
+//        }
+
+//        public void setRole(String role) {
+//                this.role = role;
+//        }
+//
+
+//
+//        public Date getBirthday() {
+//                return birthday;
+//        }
+//
+//        public void setBirthday(Date birthday) {
+//                this.birthday = birthday;
+//        }
+
 
         @Override
         public String toString() {
@@ -103,8 +107,7 @@ public class UserDTO {
                         ", lastName='" + lastName + '\'' +
                         ", email='" + email + '\'' +
                         ", phone='" + phone + '\'' +
-                        ", birthday=" + birthday +
-                        ", ImgPath='" + ImgPath + '\'' +
+                        ", password='" + password + '\'' +
                         '}';
         }
 }

@@ -2,16 +2,16 @@ package com.javaweb.model;
 
 public class ListingDTO {
 
-    private Integer listingId;
+    private Long listingId;
     private String description;
     private String listingStatus;
-    private Integer propertyId;
+    private Long propertyId;
 
     // === Constructors ===
     public ListingDTO() {
     }
 
-    public ListingDTO(Integer listingId, String description, String listingStatus, Integer propertyId) {
+    public ListingDTO(Long listingId, String description, String listingStatus, Long propertyId) {
         this.listingId = listingId;
         this.description = description;
         this.listingStatus = listingStatus;
@@ -19,11 +19,11 @@ public class ListingDTO {
     }
 
     // === Getters & Setters ===
-    public Integer getListingId() {
+    public Long getListingId() {
         return listingId;
     }
 
-    public void setListingId(Integer listingId) {
+    public void setListingId(Long listingId) {
         this.listingId = listingId;
     }
 
@@ -43,12 +43,11 @@ public class ListingDTO {
         this.listingStatus = listingStatus;
     }
 
-    public Integer getPropertyId() {
+    public Long getPropertyId() {
         return propertyId;
     }
 
-    public void setPropertyId(Integer propertyId) {
+    public void setPropertyId(Long propertyId) {
         this.propertyId = propertyId;
     }
-
 }
