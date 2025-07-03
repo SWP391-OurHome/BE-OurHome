@@ -1,4 +1,4 @@
-package com.javaweb.repository;
+package com.javaweb.repository.impl;
 
 
 

@@ -33,6 +33,7 @@ public class SellerController {
     //Lay danh sach cac agent
     @GetMapping
     public List<UserDTO> getAllSellers() {
+
         return sellerService.getAllSellers();
     }
 

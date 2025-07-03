@@ -2,8 +2,10 @@ package com.javaweb.service.impl;
 
 import com.javaweb.model.ListingDTO;
 import com.javaweb.model.PropertyDTO;
-import com.javaweb.repository.ListingRepository;
+import com.javaweb.repository.entity.PropertyEntity;
+import com.javaweb.repository.impl.ListingRepository;
 import com.javaweb.repository.entity.ListingEntity;
+import com.javaweb.repository.impl.PropertyRepository;
 import com.javaweb.service.ListingService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -17,6 +19,9 @@ public class ListingServiceImpl implements ListingService {
 
     @Autowired
     private ListingRepository listingRepository;
+
+    @Autowired
+    private PropertyRepository propertyRepository;
 
     @Override
     public Optional<ListingDTO> getListingByPropertyId(Integer propertyId) {
@@ -53,6 +58,8 @@ public class ListingServiceImpl implements ListingService {
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
+
+
 
     private ListingDTO convertToDTO(ListingEntity entity) {
         return new ListingDTO(

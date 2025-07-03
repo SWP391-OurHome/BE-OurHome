@@ -1,6 +1,7 @@
 package com.javaweb.controller;
 
 import com.javaweb.model.ListingDTO;
+import com.javaweb.repository.entity.PropertyEntity;
 import com.javaweb.service.ListingService;
 import com.javaweb.service.PropertyService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -8,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/listings")
@@ -33,6 +36,7 @@ public class ListingController {
         MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
         return propertyService.updateProperty(userID, multipartRequest);
     }
+
 
 
 }
