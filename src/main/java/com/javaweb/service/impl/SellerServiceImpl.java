@@ -1,9 +1,7 @@
 package com.javaweb.service.impl;
 
-import com.javaweb.model.ListingDTO;
 import com.javaweb.model.UserDTO;
-import com.javaweb.repository.ListingRepository;
-import com.javaweb.repository.entity.ListingEntity;
+import com.javaweb.repository.impl.ListingRepository;
 import com.javaweb.repository.entity.UserEntity;
 import com.javaweb.repository.impl.UserRepositoryImpl;
 import com.javaweb.service.SellerService;

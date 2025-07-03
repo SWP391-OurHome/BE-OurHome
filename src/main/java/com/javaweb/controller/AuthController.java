@@ -1,5 +1,6 @@
 package com.javaweb.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.javaweb.model.*;
 import com.javaweb.service.UserService;
 import com.javaweb.service.impl.GoogleAuthService;
@@ -38,6 +39,9 @@ public class AuthController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody(required = false) AuthRequest request) {
         System.out.println("Received from FE: " + request);
@@ -47,6 +51,10 @@ public class AuthController {
     @PostMapping("/signup")
     public ResponseEntity<AuthResponse> register(@RequestBody UserDTO request) {
         try {
+            // Sử dụng bean ObjectMapper đã được cấu hình
+            String rawJson = objectMapper.writeValueAsString(request);
+            System.out.println("Raw JSON received: " + rawJson);
+
             System.out.println("Received from FE: " + request);
             AuthResponse response = userService.registerUser(request);
 
@@ -55,8 +63,8 @@ public class AuthController {
             } else {
                 return ResponseEntity.ok(response);
             }
-
         } catch (Exception e) {
+            e.printStackTrace();
             AuthResponse errorResponse = new AuthResponse(false, "Internal server error");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }

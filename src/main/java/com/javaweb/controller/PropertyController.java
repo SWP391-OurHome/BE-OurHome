@@ -1,7 +1,7 @@
 package com.javaweb.controller;
 
 import com.javaweb.model.PropertyDTO;
-import com.javaweb.repository.PropertyRepository;
+import com.javaweb.repository.impl.PropertyRepository;
 import com.javaweb.repository.entity.PropertyEntity;
 import com.javaweb.repository.entity.PropertyImage;
 import com.javaweb.service.PropertyService;
@@ -9,7 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.javaweb.repository.PropertyImageRepository;
+import com.javaweb.repository.impl.PropertyImageRepository;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 
@@ -32,8 +32,9 @@ public class PropertyController {
     private PropertyService propertyService;
 
     @GetMapping
-    public ResponseEntity<List<PropertyEntity>> getAll() {
-        return ResponseEntity.ok(propertyRepository.findAll());
+    public ResponseEntity<List<PropertyDTO>> getAllProperties() {
+        List<PropertyDTO> properties = propertyService.getAllProperties();
+        return ResponseEntity.ok(properties);
     }
 
     @GetMapping("/{id}")
@@ -80,5 +81,34 @@ public class PropertyController {
         return ResponseEntity.ok(success);
     }
 
+    @DeleteMapping("/{id}/{userID}")
+    public ResponseEntity<Boolean> delete(@PathVariable Integer id, @PathVariable Integer userID) {
+        try {
+            boolean success = propertyService.deleteProperty(id, userID);
+            if (success) {
+                return ResponseEntity.ok(true);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(false);
+        }
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<PropertyDTO>> search(
+            @RequestParam(required = false) String city,
+            @RequestParam(required = false) String propertyType,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(required = false) Double minArea,
+            @RequestParam(required = false) Double maxArea,
+            @RequestParam(required = false) Integer bedrooms,
+            @RequestParam(required = false) Integer bathrooms
+    ) {
+        List<PropertyDTO> properties = propertyService.search(
+                city, propertyType, minPrice, maxPrice, minArea, maxArea, bedrooms, bathrooms);
+        return ResponseEntity.ok(properties);
+    }
 
 }

@@ -74,6 +74,10 @@ public class PropertyEntity {
     @JsonManagedReference
     private List<PropertyImage> images = new ArrayList<>();
 
+    @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference(value = "property-listings")
+    private List<ListingEntity> listings = new ArrayList<>();
+
     @ManyToOne
     @JoinColumn(name = "UserID")
     private UserEntity user;
@@ -237,6 +241,11 @@ public class PropertyEntity {
         this.price = price;
     }
 
+    public List<ListingEntity> getListings() {
+        return listings;
+    }
 
-
+    public void setListings(List<ListingEntity> listings) {
+        this.listings = listings;
+    }
 }

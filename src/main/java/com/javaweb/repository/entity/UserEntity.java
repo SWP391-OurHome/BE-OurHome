@@ -28,7 +28,7 @@ public class UserEntity {
     private String lastName;
 
 //
-    @Column(name = "birthday")
+    @Column(name = "birthday", columnDefinition = "DATE")
     private LocalDate birthday;
 
     @Column(name = "phone", length = 20)

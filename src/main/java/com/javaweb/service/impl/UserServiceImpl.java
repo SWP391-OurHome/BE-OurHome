@@ -48,6 +48,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public AuthResponse registerUser(UserDTO request) {
+        System.out.println("Received UserDTO: " + request);
         if (userRepo.existsByEmail(request.getEmail())) {
             return new AuthResponse(false, "Email already exists");
         }
@@ -66,8 +67,9 @@ public class UserServiceImpl implements UserService {
                 request.getPassword(),
                 defaultRole
         );
-        user.setBirthday(request.getBirthday()); // Set birthday from request
-        user.setImgPath("/img/DefaultAvatar.jpg"); // Set default avatar path
+        user.setBirthday(request.getBirthday()); // Log this value
+        System.out.println("Setting birthday: " + request.getBirthday());
+        user.setImgPath(" "); // Set default avatar path
 
         userRepo.save(user);
         return new AuthResponse(true, "Register success", "Customer");
