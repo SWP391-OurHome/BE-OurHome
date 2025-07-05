@@ -15,7 +15,7 @@ public class PropertyImage {
     private String imageUrl;
 
     @ManyToOne
-    @JoinColumn(name = "property_id")
+    @JoinColumn(name = "property_id", referencedColumnName = "PropertyID")
     @JsonBackReference
     private PropertyEntity property;
 

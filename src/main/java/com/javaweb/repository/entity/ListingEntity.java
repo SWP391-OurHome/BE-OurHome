@@ -20,9 +20,8 @@ public class ListingEntity {
     private String listingStatus;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "PropertyID", referencedColumnName = "PropertyID", insertable = false, updatable = false)
+    @JoinColumn(name = "PropertyID", referencedColumnName = "PropertyID")
     private PropertyEntity property;
-
 
 
     public ListingEntity() {

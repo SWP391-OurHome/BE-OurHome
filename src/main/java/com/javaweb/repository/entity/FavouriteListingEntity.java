@@ -1,95 +1,55 @@
 package com.javaweb.repository.entity;
 
-
 import jakarta.persistence.*;
 
-
 @Entity
-@Table(name = "FavouriteListing") // Giữ nguyên tên bảng là "FavouriteListing"
+@Table(name = "favouritelisting")
 public class FavouriteListingEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "FavouriteID")
-    private Integer favouriteId;
+    private Integer id;
 
-
-    @Column(name = "UserID", nullable = false)
-    private Integer userId;
-
-
-    @Column(name = "ListingID", nullable = false)
-    private Integer listingId;
-
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "UserID", insertable = false, updatable = false)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "UserID", nullable = false)
     private UserEntity user;
 
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ListingID", insertable = false, updatable = false)
-    private ListingEntity listing;
-
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "PropertyID", nullable = false)
+    private PropertyEntity property;
 
     // Constructors
     public FavouriteListingEntity() {}
 
-
-    public FavouriteListingEntity(Integer userId, Integer listingId) {
-        this.userId = userId;
-        this.listingId = listingId;
+    public FavouriteListingEntity(UserEntity user, PropertyEntity property) {
+        this.user = user;
+        this.property = property;
     }
 
-
-    // Getters and Setters
-    public Integer getFavouriteId() {
-        return favouriteId;
+    // Getters & Setters
+    public Integer getId() {
+        return id;
     }
 
-
-    public void setFavouriteId(Integer favouriteId) {
-        this.favouriteId = favouriteId;
+    public void setId(Integer id) {
+        this.id = id;
     }
-
-
-    public Integer getUserId() {
-        return userId;
-    }
-
-
-    public void setUserId(Integer userId) {
-        this.userId = userId;
-    }
-
-
-    public Integer getListingId() {
-        return listingId;
-    }
-
-
-    public void setListingId(Integer listingId) {
-        this.listingId = listingId;
-    }
-
 
     public UserEntity getUser() {
         return user;
     }
 
-
     public void setUser(UserEntity user) {
         this.user = user;
     }
 
-
-    public ListingEntity getListing() {
-        return listing;
+    public PropertyEntity getProperty() {
+        return property;
     }
 
-
-    public void setListing(ListingEntity listing) {
-        this.listing = listing;
+    public void setProperty(PropertyEntity property) {
+        this.property = property;
     }
 }
 

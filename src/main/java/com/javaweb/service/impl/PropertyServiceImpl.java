@@ -67,7 +67,7 @@ public class PropertyServiceImpl implements PropertyService {
                 .collect(Collectors.toList());
     }
 
-    private PropertyDTO convertToDTO(PropertyEntity entity) {
+    public PropertyDTO convertToDTO(PropertyEntity entity) {
         PropertyDTO dto = new PropertyDTO();
         dto.setPropertyID(entity.getId());
         dto.setAddressLine1(entity.getAddressLine1());
@@ -122,35 +122,34 @@ public class PropertyServiceImpl implements PropertyService {
     @Override
     @Transactional
     public boolean createProperty(Integer userId, MultipartHttpServletRequest request) {
+        // Tạo property
         PropertyEntity property = new PropertyEntity();
-        ListingEntity listing = new ListingEntity();
-
         UserEntity user = userRepo.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
         property.setUser(user);
-        listing.setProperty(property);
 
         updatePropertyDetails(property, request);
-        updateListingDetails(listing, request);
 
-        List<PropertyImage> images = updateImages(property, request);
-
-        if (!images.isEmpty()) {
-            property.setImgURL(images.get(0).getImageUrl());
-        } else {
-            property.setImgURL(null);
-        }
-
-        property.setImages(images);
+        // Lưu property trước để có ID
         property = propertyRepo.save(property);
 
+        // Gán ảnh và URL sau khi property có ID
+        List<PropertyImage> images = updateImages(property, request);
+        if (!images.isEmpty()) {
+            property.setImgURL(images.get(0).getImageUrl());
+        }
+        property.setImages(images);
+        propertyIMGRepo.saveAll(images);
+
+        // Tạo listing sau khi có property
+        ListingEntity listing = new ListingEntity();
+        updateListingDetails(listing, request);
         listing.setProperty(property);
         listRepo.save(listing);
 
-        propertyIMGRepo.saveAll(images);
-
         return true;
     }
+
 
     private void updatePropertyDetails(PropertyEntity property, MultipartHttpServletRequest request) {
         if (request.getParameter("addressLine1") != null)
@@ -184,55 +183,44 @@ public class PropertyServiceImpl implements PropertyService {
     public List<PropertyImage> updateImages(PropertyEntity property, MultipartHttpServletRequest request) {
         List<PropertyImage> images = new ArrayList<>();
 
-        // Retain existing images
+        // 1. Lấy ảnh hiện có từ DB (nếu có)
         if (property.getImages() != null) {
             images.addAll(property.getImages());
         }
 
-        // Handle removed images
-        Iterator<String> removedIterator = request.getParameterNames().asIterator();
+        // 2. Xử lý xóa ảnh theo request (các ảnh đã tồn tại nhưng bị yêu cầu xóa)
         List<PropertyImage> imagesToRemove = new ArrayList<>();
-        while (removedIterator.hasNext()) {
-            String paramName = removedIterator.next();
+        request.getParameterMap().forEach((paramName, values) -> {
             if (paramName.startsWith("removedImages[")) {
-                String imageUrlToRemove = request.getParameter(paramName);
-                imagesToRemove.addAll(images.stream()
-                        .filter(image -> image.getImageUrl().equals(imageUrlToRemove))
-                        .collect(Collectors.toList()));
-                images.removeIf(image -> image.getImageUrl().equals(imageUrlToRemove));
+                String imageUrlToRemove = values[0];
+                images.stream()
+                        .filter(img -> img.getImageUrl().equals(imageUrlToRemove))
+                        .findFirst()
+                        .ifPresent(img -> {
+                            imagesToRemove.add(img);
+                            images.remove(img);
+                        });
             }
-        }
+        });
 
-        // Delete removed images from the PropertyImage table
+        // Xóa ảnh bị yêu cầu remove
         if (!imagesToRemove.isEmpty()) {
-            propertyIMGRepo.deleteAll(imagesToRemove); // Xóa khỏi bảng PropertyImage
+            propertyIMGRepo.deleteAll(imagesToRemove);
         }
 
-        // Add or update existing image URLs
-        Iterator<String> paramIterator = request.getParameterNames().asIterator();
-        while (paramIterator.hasNext()) {
-            String paramName = paramIterator.next();
+        // 3. Xử lý các ảnh URL được giữ lại (dạng: images[0]=url)
+        request.getParameterMap().forEach((paramName, values) -> {
             if (paramName.startsWith("images[")) {
-                String imageUrl = request.getParameter(paramName);
-                if (imageUrl != null && !imageUrl.isEmpty()) {
-                    PropertyImage image = images.stream()
-                            .filter(img -> img.getImageUrl().equals(imageUrl))
-                            .findFirst()
-                            .orElse(new PropertyImage(imageUrl, property));
+                String imageUrl = values[0];
+                boolean exists = images.stream().anyMatch(img -> img.getImageUrl().equals(imageUrl));
+                if (!exists) {
+                    PropertyImage image = new PropertyImage(imageUrl, property);
                     images.add(image);
                 }
             }
-        }
+        });
 
-        // Handle new image uploads
-        File directory = new File(uploadDir);
-        if (!directory.exists()) {
-            directory.mkdirs();
-        }
-        if (!directory.canWrite()) {
-            throw new RuntimeException("No write permission for directory: " + uploadDir);
-        }
-
+        // 4. Xử lý ảnh mới upload (dạng: newImages[0])
         Iterator<String> fileIterator = request.getFileNames();
         while (fileIterator.hasNext()) {
             String fileParamName = fileIterator.next();
@@ -244,7 +232,9 @@ public class PropertyServiceImpl implements PropertyService {
                             String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
                             Path filePath = Paths.get(uploadDir).resolve(fileName);
                             Files.write(filePath, file.getBytes());
-                            PropertyImage image = new PropertyImage("http://localhost:8082/uploads/" + fileName, property);
+
+                            String imageUrl = "http://localhost:8082/uploads/" + fileName;
+                            PropertyImage image = new PropertyImage(imageUrl, property);
                             images.add(image);
                         } catch (IOException e) {
                             throw new RuntimeException("Failed to save image: " + e.getMessage());
@@ -254,12 +244,14 @@ public class PropertyServiceImpl implements PropertyService {
             }
         }
 
-        // Update the images list in the property
-        images.forEach(image -> image.setProperty(property));
+        // 5. Gán lại quan hệ property cho từng ảnh (bảo đảm chắc chắn)
+        images.forEach(img -> img.setProperty(property));
+
+        // 6. Gán danh sách ảnh vào property
         property.setImages(images);
 
-        // Save the updated property to the database
-        propertyRepo.save(property);
+        // 7. Lưu tất cả ảnh mới vào bảng property_images
+        propertyIMGRepo.saveAll(images); // <--- BẮT BUỘC
 
         return images;
     }
