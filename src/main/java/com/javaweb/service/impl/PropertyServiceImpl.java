@@ -1,14 +1,8 @@
 package com.javaweb.service.impl;
 
 import com.javaweb.model.PropertyDTO;
-import com.javaweb.repository.impl.ListingRepository;
-import com.javaweb.repository.impl.PropertyImageRepository;
-import com.javaweb.repository.impl.PropertyRepository;
-import com.javaweb.repository.entity.ListingEntity;
-import com.javaweb.repository.entity.PropertyEntity;
-import com.javaweb.repository.entity.PropertyImage;
-import com.javaweb.repository.entity.UserEntity;
-import com.javaweb.repository.impl.UserRepositoryImpl;
+import com.javaweb.repository.entity.*;
+import com.javaweb.repository.impl.*;
 import com.javaweb.service.PropertyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,10 +16,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalDate;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,6 +34,12 @@ public class PropertyServiceImpl implements PropertyService {
 
     @Autowired
     private UserRepositoryImpl userRepo;
+
+    @Autowired
+    private MembersRepositoryImpl membersRepository;
+
+    @Autowired
+    private MembershipRepositoryImpl membershipRepository;
 
     @Value("${app.upload.dir:D:/SWP391-Probjects/BE-DreamHouse/upload}")
     private String uploadDir;
@@ -87,12 +85,21 @@ public class PropertyServiceImpl implements PropertyService {
         dto.setImgURL(entity.getImgURL());
         dto.setPurpose(entity.getPurpose());
         dto.setPrice(entity.getPrice());
+
         // Convert PropertyImage list to List<String>
         if (entity.getImages() != null) {
             dto.setImages(entity.getImages().stream()
-                    .map(image -> image.getImageUrl()) // Assuming PropertyImage has getImageUrl()
+                    .map(image -> image.getImageUrl())
                     .collect(Collectors.toList()));
         }
+
+        Optional<ListingEntity> listingOpt = listRepo.findByPropertyId(entity.getId());
+        if (listingOpt.isPresent()) {
+            ListingEntity listing = listingOpt.get();
+            dto.setListingStatus(String.valueOf(listing.getListingStatus()));
+            dto.setListingType(listing.getListingType());
+        }
+
         return dto;
     }
 
@@ -121,19 +128,60 @@ public class PropertyServiceImpl implements PropertyService {
 
     @Override
     @Transactional
-    public boolean createProperty(Integer userId, MultipartHttpServletRequest request) {
-        // Tạo property
+    public Map<String, Object> createProperty(Integer userId, MultipartHttpServletRequest request) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", false);
+
+        MembersEntity member = membersRepository.findByUserUserId(userId);
+        if (member == null) {
+            response.put("message", "User with ID " + userId + " is not a member or not found.");
+            return response;
+        }
+
+        LocalDate currentDate = LocalDate.now();
+        if (Boolean.FALSE.equals(member.getStatus()) || member.getEndDate().isBefore(currentDate)) {
+            response.put("message", "Membership is inactive or expired. Please renew your membership.");
+            return response;
+        }
+
+        // Lấy thông tin listingType từ request (giả sử có tham số "listingType" trong request)
+        String listingType = request.getParameter("listingType") != null ? request.getParameter("listingType").toLowerCase() : "normal";
+        boolean isVip = "vip".equals(listingType);
+
+        // Lấy thông tin giới hạn từ MembershipEntity
+        Integer membershipId = member.getMembership().getMembershipId();
+        MembershipEntity membership = membershipRepository.findById(membershipId)
+                .orElseThrow(() -> new RuntimeException("Membership not found with ID: " + membershipId));
+        int maxTotalProperties = membership.getNumListings() != null ? membership.getNumListings() : 0;
+        int maxVipProperties = membership.getNumListingsVip() != null ? membership.getNumListingsVip() : 0;
+
+        // Đếm tổng số property và số property VIP
+        long totalPropertyCount = propertyRepo.countByUserUserId(userId);
+        long vipPropertyCount = propertyRepo.countByUserUserIdAndListingsListingType(userId, "vip");
+
+        // Kiểm tra giới hạn tổng số property
+        if (totalPropertyCount >= maxTotalProperties) {
+            response.put("message", "You have reached the maximum number of properties (" + maxTotalProperties + ") for your membership level (" + membershipId + ").");
+            return response;
+        }
+
+        // Kiểm tra giới hạn tin VIP nếu là tin VIP
+        if (isVip && vipPropertyCount >= maxVipProperties) {
+            response.put("message", "You have reached the maximum number of VIP properties (" + maxVipProperties + ") for your membership level (" + membershipId + ").");
+            return response;
+        }
+
         PropertyEntity property = new PropertyEntity();
-        UserEntity user = userRepo.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
+        UserEntity user = userRepo.findById(userId).orElse(null);
+        if (user == null) {
+            response.put("message", "User not found with ID: " + userId);
+            return response;
+        }
         property.setUser(user);
 
         updatePropertyDetails(property, request);
 
-        // Lưu property trước để có ID
         property = propertyRepo.save(property);
-
-        // Gán ảnh và URL sau khi property có ID
         List<PropertyImage> images = updateImages(property, request);
         if (!images.isEmpty()) {
             property.setImgURL(images.get(0).getImageUrl());
@@ -141,15 +189,16 @@ public class PropertyServiceImpl implements PropertyService {
         property.setImages(images);
         propertyIMGRepo.saveAll(images);
 
-        // Tạo listing sau khi có property
         ListingEntity listing = new ListingEntity();
         updateListingDetails(listing, request);
+        listing.setListingType(listingType); // Gán listingType từ request
         listing.setProperty(property);
         listRepo.save(listing);
 
-        return true;
+        response.put("success", true);
+        response.put("message", "Property created successfully.");
+        return response;
     }
-
 
     private void updatePropertyDetails(PropertyEntity property, MultipartHttpServletRequest request) {
         if (request.getParameter("addressLine1") != null)
@@ -174,10 +223,27 @@ public class PropertyServiceImpl implements PropertyService {
     }
 
     private void updateListingDetails(ListingEntity listing, MultipartHttpServletRequest request) {
-        if (request.getParameter("description") != null) listing.setDescription(request.getParameter("description"));
-        if (request.getParameter("listingStatus") != null)
-            listing.setListingStatus(request.getParameter("listingStatus"));
+        // Cập nhật mô tả nếu có
+        if (request.getParameter("description") != null) {
+            listing.setDescription(request.getParameter("description"));
+        }
+
+        // Cập nhật trạng thái (boolean) nếu có
+        if (request.getParameter("listingStatus") != null) {
+            String statusStr = request.getParameter("listingStatus").toLowerCase();
+            boolean status = statusStr.equals("true") || statusStr.equals("1");
+            listing.setListingStatus(status);
+        }
+
+        // Cập nhật loại tin (vip / normal) nếu có
+        if (request.getParameter("listingType") != null) {
+            String type = request.getParameter("listingType").toLowerCase();
+            if (type.equals("vip") || type.equals("normal")) {
+                listing.setListingType(type);
+            }
+        }
     }
+
 
     @Transactional
     public List<PropertyImage> updateImages(PropertyEntity property, MultipartHttpServletRequest request) {
@@ -291,6 +357,5 @@ public class PropertyServiceImpl implements PropertyService {
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
-
 
 }

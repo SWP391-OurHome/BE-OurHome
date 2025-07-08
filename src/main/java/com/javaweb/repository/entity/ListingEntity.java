@@ -17,12 +17,24 @@ public class ListingEntity {
     private String description;
 
     @Column(name = "Listing_status")
-    private String listingStatus;
+    private boolean listingStatus;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PropertyID", referencedColumnName = "PropertyID")
     private PropertyEntity property;
 
+    @Column(name = "listing_type")
+    private String listingType;
+
+
+
+    public String getListingType() {
+        return listingType;
+    }
+
+    public void setListingType(String listingType) {
+        this.listingType = listingType;
+    }
 
     public ListingEntity() {
     }
@@ -36,12 +48,14 @@ public class ListingEntity {
         this.property = property;
     }
 
-    public ListingEntity(Integer listingId, String description, String listingStatus, PropertyEntity property) {
+    public ListingEntity(Integer listingId, String description, boolean listingStatus, PropertyEntity property, String listingType) {
         this.listingId = listingId;
         this.description = description;
         this.listingStatus = listingStatus;
         this.property = property;
+        this.listingType = listingType;
     }
+
     // === Getters & Setters ===
 
     public Integer getListingId() {
@@ -60,11 +74,11 @@ public class ListingEntity {
         this.description = description;
     }
 
-    public String getListingStatus() {
+    public boolean getListingStatus() {
         return listingStatus;
     }
 
-    public void setListingStatus(String listingStatus) {
+    public void setListingStatus(boolean listingStatus) {
         this.listingStatus = listingStatus;
     }
 

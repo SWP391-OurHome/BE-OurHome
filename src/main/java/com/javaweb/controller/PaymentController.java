@@ -1,12 +1,16 @@
 package com.javaweb.controller;
 
 import com.javaweb.model.PaymentDTO;
-import com.javaweb.repository.entity.*;
 import com.javaweb.repository.impl.UserRepositoryImpl;
 import com.javaweb.repository.impl.RoleRepositoryImpl;
 import com.javaweb.repository.impl.PaymentRepositoryImpl;
-import com.javaweb.repository.impl.PackageMemberRepositoryImpl;
+import com.javaweb.repository.impl.MembersRepositoryImpl;
+import com.javaweb.service.MembersService;
+import com.javaweb.service.MembershipService;
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.transaction.annotation.Transactional;
 import vn.payos.PayOS;
 import vn.payos.type.CheckoutResponseData;
 import vn.payos.type.PaymentData;
@@ -20,10 +24,11 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URLEncoder;
-import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 @RestController
 @RequestMapping("/api/payment")
@@ -43,9 +48,14 @@ public class PaymentController {
     private PaymentRepositoryImpl paymentRepository;
 
     @Autowired
-    private PackageMemberRepositoryImpl packageMemberRepository;
+    private MembersRepositoryImpl packageMemberRepository;
+
+    @Autowired
+    private MembersService membersService;
 
     private PayOS payOS;
+    private static final ConcurrentHashMap<String, Boolean> processingOrders = new ConcurrentHashMap<>();
+    private static final ReentrantLock lock = new ReentrantLock();
 
     @PostConstruct
     public void init() {
@@ -57,51 +67,84 @@ public class PaymentController {
     }
 
     @PostMapping("/initiate")
-    public ResponseEntity<Map<String, String>> initiatePayment(@RequestBody Map<String, Object> payload) {
+    public ResponseEntity<Map<String, String>> initiatePayment(@RequestBody Map<String, Object> payload, HttpServletRequest request) throws Exception {
+        HttpSession session = request.getSession(true);
+        System.out.println("Received payload from FE: " + payload); // Log toàn bộ payload nhận được
         try {
             String orderCodeStr = (String) payload.get("orderCode");
             Long orderCode = Long.parseLong(orderCodeStr);
             Number amountNum = (Number) payload.get("amount");
             int amount = amountNum.intValue();
             String description = (String) payload.get("description");
-            String name = (String) payload.get("name");
             String email = (String) payload.get("email");
-            String membershipType = (String) payload.get("membershipType");
+            Integer membershipId = Integer.parseInt((String) payload.get("membershipId"));
+
+            System.out.println("DEBUG: Initiating payment with email: " + email + ", orderCode: " + orderCodeStr + ", membershipId: " + membershipId);
 
             if (description != null && description.length() > 24) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Description must be 24 characters or less"));
+                description = description.substring(0, 24);
             }
 
-            String ngrokUrl = " https://57d1-118-69-34-209.ngrok-free.app";
+            String ngrokUrl = "https://f585-2402-800-6205-71c6-6427-79af-8047-169b.ngrok-free.app";
 
-            PaymentDataBuilder paymentDataBuilder = PaymentData.builder()
-                    .orderCode(orderCode)
-                    .amount(amount * 100)
-                    .description(description != null ? description : "Payment")
-                    .cancelUrl(ngrokUrl + "/api/payment/cancel")
-                    .returnUrl(ngrokUrl + "/api/payment/callback");
+            if (!lock.tryLock()) {
+                System.out.println("OrderCode " + orderCodeStr + " is locked, continuing anyway");
+            }
 
-            PaymentData paymentData = paymentDataBuilder.build();
+            try {
+                if (processingOrders.putIfAbsent(orderCodeStr, true) != null) {
+                    System.out.println("OrderCode " + orderCodeStr + " is already being processed, continuing anyway");
+                }
 
-            String signature = SignatureUtils.createSignatureOfPaymentRequest(paymentData, "dee9853b0cb73699eed0f91d5dfd7ea4c98e55152e420b5fecb12ce115a40b06");
-            paymentData.setSignature(signature);
+                if (!paymentService.isValidMembershipId(membershipId)) {
+                    throw new IllegalArgumentException("Invalid membershipId: " + membershipId);
+                }
 
-            UserEntity user = userRepository.findEmail(email).orElse(null);
-            Integer userId = user != null ? user.getUserId() : null;
-            System.out.println("Initiate payment for email: " + email + ", found user: " + (user != null ? "yes" : "no"));
+                Integer userId = paymentService.getUserIdByEmail(email);
+                if (userId == null) {
+                    throw new IllegalArgumentException("User not found for email: " + email);
+                }
 
-            paymentService.createPendingPayment(orderCodeStr, userId, (double) amount, description, membershipType);
+                boolean isNewPayment = paymentService.checkAndCreatePendingPayment(orderCodeStr, userId, (double) amount, description, membershipId);
+                if (!isNewPayment) {
+                    System.out.println("OrderCode " + orderCodeStr + " already exists, reusing existing payment");
+                } else {
+                    System.out.println("New payment created for orderCode: " + orderCodeStr + ", role updated if applicable");
+                    // Gọi createMembershipAfterPayment sau khi checkAndCreatePendingPayment thành công
+                    membersService.createMembershipAfterPayment(userId, membershipId);
+                }
 
-            CheckoutResponseData response = payOS.createPaymentLink(paymentData);
-            Map<String, String> result = new HashMap<>();
-            String redirectUrl = "http://localhost:8082/api/payment/redirect-to-payos?url=" +
-                    URLEncoder.encode(response.getCheckoutUrl() + "?name=" + URLEncoder.encode(name, "UTF-8") +
-                            "&email=" + URLEncoder.encode(email, "UTF-8") + "&amount=" + amount +
-                            (membershipType != null ? "&membershipType=" + URLEncoder.encode(membershipType, "UTF-8") : ""), "UTF-8");
-            result.put("paymentUrl", redirectUrl);
-            return ResponseEntity.ok(result);
+                PaymentDataBuilder paymentDataBuilder = PaymentData.builder()
+                        .orderCode(orderCode)
+                        .amount(amount)
+                        .description(description != null ? description : "Membership Payment")
+                        .cancelUrl(ngrokUrl + "/api/payment/cancel")
+                        .returnUrl(ngrokUrl + "/api/payment/callback");
+
+                PaymentData paymentData = paymentDataBuilder.build();
+
+                String signature = SignatureUtils.createSignatureOfPaymentRequest(paymentData, "dee9853b0cb73699eed0f91d5dfd7ea4c98e55152e420b5fecb12ce115a40b06");
+                paymentData.setSignature(signature);
+
+                session.setAttribute("lastOrderCode", orderCodeStr);
+                session.setAttribute("lastUserId", userId);
+                System.out.println("DEBUG: Saved lastOrderCode to session: " + orderCodeStr + ", lastUserId: " + userId);
+
+                CheckoutResponseData response = payOS.createPaymentLink(paymentData);
+                Map<String, String> result = new HashMap<>();
+                String redirectUrl = response.getCheckoutUrl() + "?orderCode=" + orderCodeStr + "&email=" + URLEncoder.encode(email, "UTF-8") +
+                        "&amount=" + amount + "&membershipId=" + membershipId;
+                result.put("paymentUrl", redirectUrl);
+                return ResponseEntity.ok(result);
+            } finally {
+                processingOrders.remove(orderCodeStr);
+                if (lock.isLocked()) lock.unlock();
+            }
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            System.out.println("Error in initiatePayment: " + e.getMessage());
+            Map<String, String> errorResult = new HashMap<>();
+            errorResult.put("error", "Payment initiation failed due to: " + e.getMessage());
+            return ResponseEntity.badRequest().body(errorResult);
         }
     }
 
@@ -111,110 +154,87 @@ public class PaymentController {
         response.sendRedirect(url);
     }
 
+    @Transactional
     @RequestMapping(value = "/callback", method = {RequestMethod.GET, RequestMethod.POST})
     public void handleCallback(@RequestBody(required = false) Map<String, Object> body,
                                @RequestParam Map<String, String> allParams,
+                               HttpServletRequest request,
                                HttpServletResponse response) throws IOException {
+        HttpSession session = request.getSession(false);
         System.out.println("Callback received - Params: " + allParams + ", Body: " + body);
         String orderCode = allParams.get("orderCode");
-        String name = allParams.get("name");
         String email = allParams.get("email");
-        String membershipType = allParams.get("membershipType");
+        String membershipIdStr = allParams.get("membershipId");
+        String status = allParams.get("status");
+
         if (body != null && body.get("orderCode") != null) {
             orderCode = String.valueOf(body.get("orderCode"));
         }
-        String status = allParams.get("status");
         if (body != null && body.get("status") != null) {
             status = String.valueOf(body.get("status"));
         }
 
+        Integer membershipId = membershipIdStr != null ? Integer.parseInt(membershipIdStr) : null;
+
         if (orderCode != null && status != null) {
-            System.out.println("Processing orderCode: " + orderCode + ", status: " + status + ", membershipType: " + membershipType + ", email: " + email);
-            if ("PAID".equalsIgnoreCase(status) || "SUCCESS".equalsIgnoreCase(status)) {
-                paymentService.updatePaymentStatus(orderCode, "SUCCESS");
+            System.out.println("DEBUG: Processing orderCode: " + orderCode + ", status: " + status + ", membershipId: " + membershipId + ", email: " + email);
+            String normalizedStatus = "SUCCESS".equalsIgnoreCase(status) || "PAID".equalsIgnoreCase(status) ? "SUCCESS" : status.toUpperCase();
+            System.out.println("DEBUG: Normalized status to: " + normalizedStatus);
 
-                UserEntity user = userRepository.findEmail(email).orElse(null);
-                if (user != null) {
-                    System.out.println("Found user with email: " + user.getEmail() + ", current RoleID: " + (user.getRoleId() != null ? user.getRoleId().getRoleId() : "null"));
-                    RoleEntity sellerRole = roleRepository.findById(3).orElse(null);
-                    if (sellerRole != null) {
-                        user.setRoleId(sellerRole);
-                        userRepository.save(user);
-                        System.out.println("Role updated to Seller (RoleID: 3) for user: " + user.getEmail() + ", new RoleID: " + user.getRoleId().getRoleId());
-                    } else {
-                        System.out.println("Seller role (ID: 3) not found in database");
-                    }
-                } else {
-                    System.out.println("User not found with email: " + email + ". Consider adding this user to the database.");
-                }
+            paymentService.updatePaymentStatus(orderCode, normalizedStatus);
 
-                if (membershipType != null) {
-                    Integer membershipId = null;
-                    switch (membershipType.toUpperCase()) {
-                        case "BASIC":
-                            membershipId = 1;
-                            break;
-                        case "ADVANCED":
-                            membershipId = 2;
-                            break;
-                        case "PREMIUM":
-                            membershipId = 3;
-                            break;
-                    }
-                    if (membershipId != null && user != null) {
-                        PaymentEntity payment = paymentRepository.findByTransactionCode(orderCode);
-                        if (payment != null) {
-                            payment.setMembershipId(membershipId);
-                            payment.setUserId(user.getUserId());
-                            payment.setNote(membershipType);
-                            paymentRepository.save(payment);
-                        }
-
-                        PackageMemberEntity packageMember = new PackageMemberEntity();
-                        packageMember.setUserId(user.getUserId());
-                        packageMember.setMembershipId(membershipId);
-                        packageMember.setStartDate(LocalDate.now());
-                        packageMember.setEndDate(LocalDate.now().plusMonths(1));
-                        packageMember.setStatus("ACTIVE");
-                        packageMemberRepository.save(packageMember);
+            Integer userId = null;
+            if (email != null) {
+                userId = paymentService.getUserIdByEmail(email);
+            }
+            if (userId == null && session != null) {
+                userId = (Integer) session.getAttribute("lastUserId");
+                System.out.println("DEBUG: Email is null, fetched userId from session: " + userId);
+                if (userId == null) {
+                    String sessionOrderCode = (String) session.getAttribute("lastOrderCode");
+                    if (sessionOrderCode != null) {
+                        userId = paymentService.getUserIdByTransactionCode(sessionOrderCode);
+                        System.out.println("DEBUG: Fetched userId from payment: " + userId);
                     }
                 }
-            } else if ("CANCELLED".equalsIgnoreCase(status)) {
-                paymentService.updatePaymentStatus(orderCode, "CANCELLED");
+            }
+
+            if (userId != null) {
+                System.out.println("[CALLBACK] Processed callback for userId: " + userId + ", orderCode: " + orderCode + ", status: " + normalizedStatus);
+            } else {
+                System.out.println("DEBUG: User not found. orderCode=" + orderCode + ", status=" + normalizedStatus);
             }
         } else {
-            System.out.println("Missing orderCode or status in callback");
+            System.out.println("DEBUG: Missing orderCode or status in callback");
         }
 
-        String redirectUrl = "http://localhost:3000/payment"; // Mặc định
-        if (orderCode != null && ("PAID".equalsIgnoreCase(status) || "SUCCESS".equalsIgnoreCase(status))) {
-            PaymentEntity payment = paymentRepository.findByTransactionCode(orderCode);
-            if (payment != null && payment.getNote() != null) {
-                String noteMembershipType = payment.getNote().toLowerCase();
-                if (noteMembershipType.equals("basic") || noteMembershipType.equals("advanced") || noteMembershipType.equals("premium")) {
-                    redirectUrl = "http://localhost:3000/seller/dashboard/" + noteMembershipType;
-                }
-            } else if (membershipType != null) {
-                redirectUrl = "http://localhost:3000/seller/dashboard/" + membershipType.toLowerCase();
-            }
+        String redirectUrl = "http://localhost:3000/membership";
+        if (orderCode != null && ("SUCCESS".equalsIgnoreCase(status) || "PAID".equalsIgnoreCase(status))) {
+            redirectUrl = "http://localhost:3000/membership?roleId=3";
+        } else if ("CANCELLED".equalsIgnoreCase(status)) {
+            redirectUrl = "http://localhost:3000/membership";
         }
-        System.out.println("Redirecting to: " + redirectUrl);
+        System.out.println("DEBUG: Redirecting to: " + redirectUrl);
         response.sendRedirect(redirectUrl);
     }
 
     @GetMapping("/cancel")
-    public void cancelPayment(@RequestParam Map<String, String> allParams,
-                              HttpServletResponse response) throws IOException {
+    public void cancelPayment(@RequestParam Map<String, String> allParams, HttpServletResponse response) throws IOException {
         System.out.println("Cancel received with params: " + allParams);
         String orderCode = allParams.get("orderCode");
-        String status = allParams.get("status");
-        if (orderCode != null && status != null) {
-            System.out.println("Processing cancel orderCode: " + orderCode + ", status: " + status);
-            paymentService.updatePaymentStatus(orderCode, "CANCELLED");
-        } else {
-            System.out.println("Missing orderCode or status in cancel");
+        try {
+            if (orderCode != null) {
+                paymentService.cancelPayment(orderCode);
+                System.out.println("Updated payment status to CANCELLED for transactionCode: " + orderCode);
+            } else {
+                System.out.println("No orderCode found in cancel request");
+                throw new IllegalStateException("No transactionCode available to cancel payment");
+            }
+            response.sendRedirect("http://localhost:3000/membership");
+        } catch (Exception e) {
+            System.out.println("Error in cancelPayment: " + e.getMessage() + ", stack trace: " + e.getStackTrace());
+            response.sendRedirect("http://localhost:3000/membership");
         }
-        response.sendRedirect("http://localhost:3000/payment");
     }
 
     @GetMapping("/history/{userId}")
@@ -236,5 +256,3 @@ public class PaymentController {
         return ResponseEntity.ok(transactions);
     }
 }
-
-

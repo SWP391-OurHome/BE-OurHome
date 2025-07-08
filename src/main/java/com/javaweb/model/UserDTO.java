@@ -27,6 +27,8 @@ public class UserDTO {
         private LocalDate birthday;
 
         private String ImgPath;
+        private String roleName;
+        private Boolean isActive;
 
 //        private Date createdArt;
 
@@ -96,6 +98,22 @@ public class UserDTO {
 
         public void setPassword(String password) {
                 this.password = password;
+        }
+
+        public String getRoleName() {
+                return roleName;
+        }
+
+        public void setRoleName(String roleName) {
+                this.roleName = roleName;
+        }
+
+        public Boolean getActive() {
+                return isActive;
+        }
+
+        public void setActive(Boolean active) {
+                isActive = active;
         }
 
         @Override

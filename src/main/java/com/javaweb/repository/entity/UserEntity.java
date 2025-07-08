@@ -48,6 +48,9 @@ public class UserEntity {
     @Column(name = "ImgPath")
     private String imgPath;
 
+    @Column(name = "is_active")
+    private Boolean isActive;
+
     // Getters và setters
     public Integer getUserId() {
         return userId;
@@ -55,6 +58,13 @@ public class UserEntity {
 
     public UserEntity() {
         // Constructor mặc định không tham số
+    }
+    public Boolean getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
     }
 
     public UserEntity(String firstName, String lastName, String email, String phone, String password, RoleEntity role) {
