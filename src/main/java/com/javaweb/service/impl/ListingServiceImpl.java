@@ -66,7 +66,8 @@ public class ListingServiceImpl implements ListingService {
                 entity.getListingId(),
                 entity.getDescription(),
                 entity.getListingStatus(),
-                entity.getProperty().getId()
+                entity.getProperty().getId(),
+                entity.getListingType()
         );
     }
 }

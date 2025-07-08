@@ -23,6 +23,8 @@ public class PropertyDTO {
     private String purpose;
     private String price; // Thêm trường price
     private List<String> images;
+    private String listingStatus;
+    private String listingType;
 
     public List<String> getImages() {
         return images;
@@ -175,6 +177,22 @@ public class PropertyDTO {
 
     public void setPrice(String price) {
         this.price = price;
+    }
+
+    public String getListingStatus() {
+        return listingStatus;
+    }
+
+    public void setListingStatus(String listingStatus) {
+        this.listingStatus = listingStatus;
+    }
+
+    public String getListingType() {
+        return listingType;
+    }
+
+    public void setListingType(String listingType) {
+        this.listingType = listingType;
     }
 }
 

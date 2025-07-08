@@ -45,4 +45,7 @@ public interface PropertyRepository extends JpaRepository<PropertyEntity, Intege
             @Param("bedrooms") Integer bedrooms,
             @Param("bathrooms") Integer bathrooms
     );
+
+    long countByUserUserId(Integer userId);
+    long countByUserUserIdAndListingsListingType(Integer userId, String listingType);
 }

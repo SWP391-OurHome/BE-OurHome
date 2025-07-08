@@ -149,10 +149,23 @@ public class GoogleAuthService {
     @Transactional
     public boolean verifyOtp(String email, String otp) {
         Optional<OTPEntity> latestOtp = OTPRepo.findLatestOtpByEmail(email);
-        if(!latestOtp.isPresent()){
+        if (!latestOtp.isPresent()) {
             return false;
         }
-        OTPEntity otpEntity  = latestOtp.get();
-        return otpEntity.getOtpCode().equals(otp);
+
+        OTPEntity otpEntity = latestOtp.get();
+
+        if (otpEntity.getOtpCode().equals(otp)) {
+            Optional<UserEntity> userOpt = userRepo.findByEmail(email);
+            if (userOpt.isPresent()) {
+                UserEntity user = userOpt.get();
+                user.setIsActive(true); // Cập nhật trạng thái active
+                userRepo.save(user);    // Lưu lại thay đổi
+            }
+            return true;
+        }
+
+        return false;
     }
+
 }

@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -75,10 +76,14 @@ public class PropertyController {
     }
 
     @PostMapping("/{userID}")
-    public ResponseEntity<Boolean> create(@PathVariable Integer userID, HttpServletRequest request) {
-        MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
-        boolean success = propertyService.createProperty(userID, multipartRequest);
-        return ResponseEntity.ok(success);
+    public ResponseEntity<Map<String, Object>> create(@PathVariable Integer userID, MultipartHttpServletRequest request) {
+        Map<String, Object> response = propertyService.createProperty(userID, request);
+        boolean success = (boolean) response.get("success");
+        if (success) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.badRequest().body(response);
+        }
     }
 
     @DeleteMapping("/{id}/{userID}")

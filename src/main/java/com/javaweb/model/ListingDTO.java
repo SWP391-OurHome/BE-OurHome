@@ -4,18 +4,19 @@ public class ListingDTO {
 
     private Integer listingId;
     private String description;
-    private String listingStatus;
+    private boolean listingStatus;
     private Integer propertyId;
-
+    private String lisitngType;
     // === Constructors ===
     public ListingDTO() {
     }
 
-    public ListingDTO(Integer listingId, String description, String listingStatus, Integer propertyId) {
+    public ListingDTO(Integer listingId, String description, boolean listingStatus, Integer propertyId,String lisitngType) {
         this.listingId = listingId;
         this.description = description;
         this.listingStatus = listingStatus;
         this.propertyId = propertyId;
+        this.lisitngType = lisitngType;
     }
 
     // === Getters & Setters ===
@@ -35,11 +36,11 @@ public class ListingDTO {
         this.description = description;
     }
 
-    public String getListingStatus() {
+    public boolean getListingStatus() {
         return listingStatus;
     }
 
-    public void setListingStatus(String listingStatus) {
+    public void setListingStatus(boolean listingStatus) {
         this.listingStatus = listingStatus;
     }
 
@@ -51,4 +52,15 @@ public class ListingDTO {
         this.propertyId = propertyId;
     }
 
+    public boolean isListingStatus() {
+        return listingStatus;
+    }
+
+    public String getLisitngType() {
+        return lisitngType;
+    }
+
+    public void setLisitngType(String lisitngType) {
+        this.lisitngType = lisitngType;
+    }
 }

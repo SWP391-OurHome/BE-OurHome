@@ -32,12 +32,27 @@ public class UserServiceImpl implements UserService {
 
         if (userOpt.isPresent()) {
             UserEntity user = userOpt.get();
+
+            // Kiểm tra xem tài khoản có bị ban (is_active = false/0) không
+            if (user.getIsActive() != null && !user.getIsActive()) {
+                return new AuthResponse(false, "Account is banned or deactivated");
+            }
+
             String passDb = user.getPassword();
             String passFe = request.getPassword();
 
             if (passDb != null && passDb.equals(passFe)) {
-                return new AuthResponse(user.getUserId(),true, "Login success", user.getRole().getRoleName()
-                        ,user.getImgPath(),user.getEmail(), user.getFirstName() ,user.getLastName(),user.getBirthday());
+                return new AuthResponse(
+                        user.getUserId(),
+                        true,
+                        "Login success",
+                        user.getRole().getRoleName(),
+                        user.getImgPath(),
+                        user.getEmail(),
+                        user.getFirstName(),
+                        user.getLastName(),
+                        user.getBirthday()
+                );
             } else {
                 return new AuthResponse(false, "Invalid credentials");
             }
@@ -45,6 +60,7 @@ public class UserServiceImpl implements UserService {
 
         return new AuthResponse(false, "User not found");
     }
+
 
     @Override
     public AuthResponse registerUser(UserDTO request) {
