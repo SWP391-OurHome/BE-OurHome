@@ -1,9 +1,11 @@
 package com.javaweb.service.impl;
 
 import com.javaweb.model.ReportDTO;
+import com.javaweb.repository.entity.ListingEntity;
 import com.javaweb.repository.entity.PropertyEntity;
 import com.javaweb.repository.entity.ReportEntity;
 import com.javaweb.repository.entity.UserEntity;
+import com.javaweb.repository.impl.ListingRepository;
 import com.javaweb.repository.impl.ReportRepository;
 import com.javaweb.repository.impl.PropertyRepository;
 import com.javaweb.repository.impl.UserRepositoryImpl;
@@ -27,6 +29,8 @@ public class ReportServiceImpl implements ReportService {
 
     @Autowired
     private UserRepositoryImpl userRepository;
+    @Autowired
+    private ListingRepository listingRepository;
 
     public ReportDTO saveReport(ReportDTO reportDTO) throws Exception {
         List<String> activeStatuses = Arrays.asList("pending", "under_review");
@@ -68,13 +72,25 @@ public class ReportServiceImpl implements ReportService {
     public ReportDTO updateReportStatus(Integer reportId, String status) throws Exception {
         ReportEntity report = reportRepository.findById(reportId)
                 .orElseThrow(() -> new Exception("Report not found"));
+
+
         report.setStatus(status);
         ReportEntity updatedReport = reportRepository.save(report);
+
+        Integer propertyId = report.getReportId();
+        ListingEntity listing = listingRepository.findByPropertyId(propertyId)
+                .orElseThrow(() -> new Exception("Listing not found for propertyId: " + propertyId));
+
+        listing.setListingStatus(false);
+        listingRepository.save(listing);
+
         return convertToDTO(updatedReport);
     }
 
+
     private ReportDTO convertToDTO(ReportEntity report) {
         ReportDTO dto = new ReportDTO();
+        dto.setReportId(report.getReportId());
         dto.setPropertyId(report.getProperty().getId());
         dto.setUserId(report.getUser().getUserId());
         dto.setReportReason(report.getReportReason());

@@ -29,8 +29,16 @@ public class UserDTO {
         private String ImgPath;
         private String roleName;
         private Boolean isActive;
-
+        private LocalDate createDate;
 //        private Date createdArt;
+
+        public LocalDate getCreateDate() {
+                return createDate;
+        }
+
+        public void setCreateDate(LocalDate createDate) {
+                this.createDate = createDate;
+        }
 
         public UserDTO() {
 

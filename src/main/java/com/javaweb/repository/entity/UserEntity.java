@@ -38,7 +38,7 @@ public class UserEntity {
     private String email;
 
     @Column(name = "createDate")
-    private LocalDateTime createDate;
+    private LocalDate createDate;
 
 
     @ManyToOne
@@ -75,6 +75,7 @@ public class UserEntity {
         this.password = password;
         this.role = role;
     }
+
 
     public LocalDate getBirthday() {
         return birthday;
@@ -148,11 +149,11 @@ public class UserEntity {
         this.email = email;
     }
 
-    public LocalDateTime getCreateDate() {
+    public LocalDate getCreateDate() {
         return createDate;
     }
 
-    public void setCreateDate(LocalDateTime createDate) {
+    public void setCreateDate(LocalDate createDate) {
         this.createDate = createDate;
     }
 
