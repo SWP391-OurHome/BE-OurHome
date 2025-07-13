@@ -1,5 +1,7 @@
 package com.javaweb.controller;
 
+import com.javaweb.model.AdminDashboardDTO;
+import com.javaweb.model.TopSellingDTO;
 import com.javaweb.model.UserDTO;
 import com.javaweb.service.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,16 @@ public class AdminController {
     @Autowired
     private AdminService adminService;
 
+    //Overview
+    @GetMapping("/dashboard")
+    public AdminDashboardDTO getDashboard() {
+        return adminService.getTotalDashboard();
+    }
+
+    @GetMapping("/top-selling")
+    public List<TopSellingDTO> getTopSelling() {
+        return adminService.getTopSelling();
+    }
     //User Manager
     @GetMapping("/users")
     public ResponseEntity<List<UserDTO>> getAllUsers() {

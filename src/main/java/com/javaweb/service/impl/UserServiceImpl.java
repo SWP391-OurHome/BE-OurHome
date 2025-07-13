@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -74,7 +75,7 @@ public class UserServiceImpl implements UserService {
 
         RoleEntity defaultRole = new RoleEntity();
         defaultRole.setRoleId(2);
-
+        LocalDate now = LocalDate.now();
         UserEntity user = new UserEntity(
                 request.getFirstName(),
                 request.getLastName(),
@@ -83,6 +84,7 @@ public class UserServiceImpl implements UserService {
                 request.getPassword(),
                 defaultRole
         );
+        user.setCreateDate(LocalDate.now());
         user.setBirthday(request.getBirthday()); // Log this value
         System.out.println("Setting birthday: " + request.getBirthday());
         user.setImgPath(" "); // Set default avatar path

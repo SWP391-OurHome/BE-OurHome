@@ -4,12 +4,21 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class ReportDTO {
+    private Integer reportId;
     private Integer propertyId;
     private Integer userId;
     private String reportReason;
     private String reportDetail;
     private LocalDate reportDate;
     private String status;
+
+    public Integer getReportId() {
+        return reportId;
+    }
+
+    public void setReportId(Integer reportId) {
+        this.reportId = reportId;
+    }
 
     public Integer getPropertyId() {
         return propertyId;
