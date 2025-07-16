@@ -4,9 +4,11 @@ import com.javaweb.model.PropertyDTO;
 import com.javaweb.repository.impl.PropertyRepository;
 import com.javaweb.repository.entity.PropertyEntity;
 import com.javaweb.repository.entity.PropertyImage;
+import com.javaweb.service.ListingService;
 import com.javaweb.service.PropertyService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.javaweb.repository.impl.PropertyImageRepository;
@@ -31,6 +33,9 @@ public class PropertyController {
 
     @Autowired
     private PropertyService propertyService;
+
+    @Autowired
+    private ListingService listingService;
 
     @GetMapping
     public ResponseEntity<List<PropertyDTO>> getAllProperties() {
@@ -115,5 +120,18 @@ public class PropertyController {
                 city, propertyType, minPrice, maxPrice, minArea, maxArea, bedrooms, bathrooms);
         return ResponseEntity.ok(properties);
     }
+
+    @PutMapping("/status")
+    public ResponseEntity<String> updateListingStatus(@RequestParam("propertyId") Integer propertyId) {
+        try {
+            listingService.toggleStatusByPropertyId(propertyId);
+            return ResponseEntity.ok("Listing status updated successfully");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error occurred");
+        }
+    }
+
 
 }

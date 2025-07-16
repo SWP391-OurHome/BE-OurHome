@@ -11,5 +11,5 @@ public interface ListingService {
     public Optional<ListingDTO> getListingByPropertyId(Integer propertyId);
     public List<ListingDTO> getAll();
     public List<ListingDTO> getListingsByProperties(List<PropertyDTO> propertyDTOs);
-
+    public void toggleStatusByPropertyId(Integer propertyId);
 }

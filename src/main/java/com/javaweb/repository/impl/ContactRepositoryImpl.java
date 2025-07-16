@@ -24,5 +24,13 @@ public interface ContactRepositoryImpl extends JpaRepository<ContactEntity, Inte
             "WHERE p.user.id = :sellerUserId")
     List<ContactDTO> findContactsByPropertyOwnerId(@Param("sellerUserId") Integer sellerUserId);
 
+    @Query("SELECT COUNT(c) FROM ContactEntity c WHERE c.property.user.id = :userId")
+    int countByLandlordUserId(@Param("userId") Integer userId);
+
+    @Query("SELECT c FROM ContactEntity c WHERE c.property.user.id = :userId")
+    List<ContactEntity> findByPropertyUserId(@Param("userId") Integer userId);
+
+    @Query("SELECT COUNT(c) FROM ContactEntity c WHERE c.property.id = :propertyId")
+    int countByPropertyId(@Param("propertyId") Integer propertyId);
 }
 

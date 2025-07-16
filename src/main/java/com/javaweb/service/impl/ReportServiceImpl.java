@@ -32,6 +32,7 @@ public class ReportServiceImpl implements ReportService {
     @Autowired
     private ListingRepository listingRepository;
 
+    @Override
     public ReportDTO saveReport(ReportDTO reportDTO) throws Exception {
         List<String> activeStatuses = Arrays.asList("pending", "under_review");
 
@@ -62,6 +63,7 @@ public class ReportServiceImpl implements ReportService {
         return convertToDTO(savedReport);
     }
 
+    @Override
     public List<ReportDTO> getAllReports() {
         return reportRepository.findAllByOrderByReportDateDesc()
                 .stream()
@@ -69,6 +71,7 @@ public class ReportServiceImpl implements ReportService {
                 .collect(Collectors.toList());
     }
 
+    @Override
     public ReportDTO updateReportStatus(Integer reportId, String status) throws Exception {
         ReportEntity report = reportRepository.findById(reportId)
                 .orElseThrow(() -> new Exception("Report not found"));
@@ -77,12 +80,23 @@ public class ReportServiceImpl implements ReportService {
         report.setStatus(status);
         ReportEntity updatedReport = reportRepository.save(report);
 
-        Integer propertyId = report.getReportId();
+        Integer propertyId = report.getProperty().getId();
         ListingEntity listing = listingRepository.findByPropertyId(propertyId)
                 .orElseThrow(() -> new Exception("Listing not found for propertyId: " + propertyId));
 
         listing.setListingStatus(false);
         listingRepository.save(listing);
+
+        return convertToDTO(updatedReport);
+    }
+
+    @Override
+    public ReportDTO deleteReport(Integer reportId) throws Exception {
+        ReportEntity report = reportRepository.findById(reportId)
+                .orElseThrow(() -> new Exception("Report not found"));
+
+        report.setStatus("deleted");
+        ReportEntity updatedReport = reportRepository.save(report);
 
         return convertToDTO(updatedReport);
     }

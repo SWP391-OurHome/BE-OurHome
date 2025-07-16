@@ -85,7 +85,7 @@ public class PaymentController {
                 description = description.substring(0, 24);
             }
 
-            String ngrokUrl = "https://f585-2402-800-6205-71c6-6427-79af-8047-169b.ngrok-free.app";
+            String ngrokUrl = "https://9ac288eea935.ngrok-free.app";
 
             if (!lock.tryLock()) {
                 System.out.println("OrderCode " + orderCodeStr + " is locked, continuing anyway");
