@@ -3,6 +3,7 @@ package com.javaweb.controller;
 import com.javaweb.model.ReportDTO;
 import com.javaweb.service.ReportService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,6 +43,16 @@ public class ReportController {
             return ResponseEntity.ok(updatedReport);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/{id}/delete")
+    public ResponseEntity<ReportDTO> deleteReport(@PathVariable("id") Integer id) {
+        try {
+            ReportDTO deleted = reportService.deleteReport(id);
+            return ResponseEntity.ok(deleted);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
 }

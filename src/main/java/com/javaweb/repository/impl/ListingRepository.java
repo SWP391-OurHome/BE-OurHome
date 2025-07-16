@@ -11,9 +11,12 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ListingRepository extends JpaRepository<ListingEntity, Long> {
+public interface ListingRepository extends JpaRepository<ListingEntity, Integer> {
     Optional<ListingEntity> findByPropertyId(Integer propertyId);
     List<ListingEntity> findByPropertyIdIn(List<Integer> propertyIds);
+    Optional<ListingEntity> findByProperty_Id(Integer propertyId);
 
+    @Query("SELECT COUNT(l) FROM ListingEntity l JOIN l.property p WHERE p.user.id = :userId AND l.listingStatus = true")
+    int countActiveByUserId(@Param("userId") Integer userId);
 
 }

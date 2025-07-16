@@ -1,8 +1,6 @@
 package com.javaweb.controller;
 
-import com.javaweb.model.ListingDTO;
-import com.javaweb.model.PropertyDTO;
-import com.javaweb.model.UserDTO;
+import com.javaweb.model.*;
 import com.javaweb.repository.entity.PropertyEntity;
 import com.javaweb.repository.entity.UserEntity;
 import com.javaweb.service.ListingService;
@@ -30,6 +28,27 @@ public class SellerController {
 
     @Autowired
     private ListingService listingService;
+
+    //Overview for seller Dashboard
+    @GetMapping("/stats")
+    public ResponseEntity<SellerDashboardDTO> getSellerStats(@RequestParam Integer userId) {
+        int listings = sellerService.getActiveListingsCount(userId);
+        String membership = sellerService.getMembershipType(userId);
+        int contacts = sellerService.getContactsCount(userId);
+        SellerDashboardDTO dto = new SellerDashboardDTO(listings, contacts, membership != null ? membership : "None");
+        return ResponseEntity.ok(dto);
+    }
+    @GetMapping("/contacts-over-time")
+    public ResponseEntity<List<ContactOverTimeDTO>> getContactsOverTime(@RequestParam Integer userId) {
+        List<ContactOverTimeDTO> data = sellerService.getContactsOverTime(userId);
+        return ResponseEntity.ok(data);
+    }
+
+    @GetMapping("/top-properties")
+    public ResponseEntity<List<TopPropertyDTO>> getTopProperties(@RequestParam Integer userId) {
+        List<TopPropertyDTO> top = sellerService.getTopProperties(userId);
+        return ResponseEntity.ok(top);
+    }
     //Lay danh sach cac agent
     @GetMapping
     public List<UserDTO> getAllSellers() {

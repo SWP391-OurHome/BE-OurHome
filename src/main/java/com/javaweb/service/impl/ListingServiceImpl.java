@@ -59,6 +59,16 @@ public class ListingServiceImpl implements ListingService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public void toggleStatusByPropertyId(Integer propertyId) {
+        ListingEntity listing = listingRepository.findByProperty_Id(propertyId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy listing"));
+
+        listing.setListingStatus(!listing.getListingStatus()); // Toggle
+        listingRepository.save(listing);
+    }
+
+
 
 
     private ListingDTO convertToDTO(ListingEntity entity) {
