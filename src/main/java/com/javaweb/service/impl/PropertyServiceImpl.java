@@ -138,6 +138,11 @@ public class PropertyServiceImpl implements PropertyService {
             return response;
         }
 
+        if (Boolean.FALSE.equals(member.getStatus())) {
+            response.put("message", "This membership package is disabled and cannot be used.");
+            return response;
+        }
+
         LocalDate currentDate = LocalDate.now();
         if (Boolean.FALSE.equals(member.getStatus()) || member.getEndDate().isBefore(currentDate)) {
             response.put("message", "Membership is inactive or expired. Please renew your membership.");

@@ -53,10 +53,10 @@ public class MembershipController {
         }
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteMembership(@PathVariable Integer id) {
+    @PutMapping("/{id}/disable")
+    public ResponseEntity<Void> disableMembership(@PathVariable Integer id) {
         try {
-            membershipService.deleteById(id);
+            membershipService.disableById(id);
             return ResponseEntity.noContent().build();
         } catch (NoSuchElementException e) {
             return ResponseEntity.notFound().build();

@@ -9,5 +9,5 @@ public interface MembershipService {
     MembershipDTO findById(Integer id);
     MembershipDTO save(MembershipDTO dto);
     MembershipDTO update(Integer id, MembershipDTO dto);
-    void deleteById(Integer id);
+    void disableById(Integer id);
 }
