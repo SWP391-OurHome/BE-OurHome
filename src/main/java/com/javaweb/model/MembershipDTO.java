@@ -7,17 +7,27 @@ public class MembershipDTO {
     private String description;
     private Integer numListings;
     private Integer numListingsVip;
+    private Boolean isActive;
 
     public MembershipDTO() {
     }
 
-    public MembershipDTO(Integer membershipId, String type, Double price, String description, Integer numListings, Integer numListingsVip) {
+    public MembershipDTO(Integer membershipId, String type, Double price, String description, Integer numListings, Integer numListingsVip, Boolean isActive) {
         this.membershipId = membershipId;
         this.type = type;
         this.price = price;
         this.description = description;
         this.numListings = numListings;
         this.numListingsVip = numListingsVip;
+        this.isActive = isActive;
+    }
+
+    public Boolean getActive() {
+        return isActive;
+    }
+
+    public void setActive(Boolean active) {
+        isActive = active;
     }
 
     public Integer getNumListings() {

@@ -51,11 +51,11 @@ public class MembershipServiceImpl implements MembershipService {
     }
 
     @Override
-    public void deleteById(Integer id) {
-        if (!membershipRepository.existsById(id)) {
-            throw new NoSuchElementException("Membership not found with id: " + id);
-        }
-        membershipRepository.deleteById(id);
+    public void disableById(Integer id) {
+        MembershipEntity entity = membershipRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Membership not found with id: " + id));
+        entity.setActive(false);
+        membershipRepository.save(entity);
     }
 
     private MembershipDTO convertToDTO(MembershipEntity entity) {
@@ -65,7 +65,8 @@ public class MembershipServiceImpl implements MembershipService {
                 entity.getPrice(),
                 entity.getDescription(),
                 entity.getNumListings(),
-                entity.getNumListingsVip()
+                entity.getNumListingsVip(),
+                entity.getActive()
         );
     }
 

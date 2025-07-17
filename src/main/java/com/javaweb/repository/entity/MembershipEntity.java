@@ -27,6 +27,9 @@ public class MembershipEntity {
     @Column(name = "num_listings_vip")
     private Integer numListingsVip;
 
+    @Column(name = "is_active")
+    private Boolean isActive = true;
+
     // === Constructors ===
     public MembershipEntity() {}
 
@@ -37,6 +40,14 @@ public class MembershipEntity {
         this.description = description;
         this.numListings = numListings;
         this.numListingsVip = numListingsVip;
+    }
+
+    public Boolean getActive() {
+        return isActive;
+    }
+
+    public void setActive(Boolean active) {
+        isActive = active;
     }
 
     public Integer getNumListings() {
