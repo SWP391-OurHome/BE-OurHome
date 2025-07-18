@@ -6,6 +6,7 @@ import com.javaweb.repository.entity.UserEntity;
 import com.javaweb.repository.impl.MembersRepositoryImpl;
 import com.javaweb.repository.impl.MembershipRepositoryImpl;
 import com.javaweb.service.MembersService;
+import com.javaweb.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,9 @@ public class MembersServiceImpl implements MembersService {
 
     @Autowired
     private MembershipRepositoryImpl membershipRepository;
+
+    @Autowired
+    private NotificationService notificationService;
 
     @Override
     @Transactional
@@ -76,8 +80,11 @@ public class MembersServiceImpl implements MembersService {
             if (member.getEndDate().isBefore(currentDate)) {
                 member.setStatus(false);
                 membersRepository.save(member);
-                // Có thể gửi thông báo ở đây, ví dụ: gửi email hoặc lưu log
-                // System.out.println("Membership for user " + member.getUser().getUserId() + " has expired and status set to false.");
+
+                // Gửi thông báo hết hạn qua NotificationService
+                Integer userId = member.getUser().getUserId();
+                Integer membershipId = member.getMembership().getMembershipId();
+                notificationService.notifyMemberExpired(userId, membershipId);
             }
         }
     }
