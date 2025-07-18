@@ -7,6 +7,7 @@ import com.javaweb.repository.impl.MembersRepositoryImpl;
 import com.javaweb.repository.impl.MembershipRepositoryImpl;
 import com.javaweb.service.MembersService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,6 +67,7 @@ public class MembersServiceImpl implements MembersService {
         return true;
     }
 
+    @Scheduled(cron = "0 0 0 * * ?")
     @Transactional
     public void deactivateExpiredMemberships() {
         LocalDate currentDate = LocalDate.now();
