@@ -10,6 +10,7 @@ import com.javaweb.repository.entity.RoleEntity;
 import com.javaweb.repository.entity.UserEntity;
 import com.javaweb.repository.impl.*;
 import com.javaweb.service.AdminService;
+import com.javaweb.service.NotificationService;
 import org.modelmapper.internal.util.Members;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -41,6 +42,9 @@ public class AdminServiceImpl implements AdminService {
 
     @Autowired
     private MembershipRepositoryImpl  membershipRepo;
+
+    @Autowired
+    private NotificationService notificationService;
     //Overview
     @Override
     public AdminDashboardDTO getTotalDashboard() {
@@ -124,6 +128,10 @@ public class AdminServiceImpl implements AdminService {
             UserEntity user = userOpt.get();
             user.setIsActive(false);
             userRepo.save(user);
+
+            String reason = "System policy violation";
+            notificationService.notifyUserBanned(userId, reason);
+
             return true;
         }
         return false;
